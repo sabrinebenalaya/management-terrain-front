@@ -1,8 +1,9 @@
 import Button from "@mui/material/Button";
 import NavLinkAdapter from "@fuse/core/NavLinkAdapter";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import Card from "@mui/material/Card";
-import _ from "@lodash"; 
+import _ from "@lodash";
 import { Controller, useForm } from "react-hook-form";
 import Box from "@mui/system/Box";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
@@ -14,6 +15,7 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { yupResolver } from "@hookform/resolvers/yup/dist/yup";
 import MenuItem from "@mui/material/MenuItem";
 import * as yup from "yup";
+import FuseUtils from "@fuse/utils";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { selectUser, updateUserData } from "app/store/userSlice";
@@ -69,9 +71,9 @@ const schema = yup.object().shape({
     .required("You must enter a phone number"),
 });
 function ProfileTab() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector(selectUser);
-  console.log("u", user)
-
 
   const { control, watch, reset, handleSubmit, formState, getValues } = useForm(
     {
@@ -79,12 +81,12 @@ function ProfileTab() {
       resolver: yupResolver(schema),
     }
   );
-const dispatch = useDispatch()
+  const { isValid, dirtyFields, errors } = formState;
   const form = watch();
-  
-  if (_.isEmpty(form) || !user) {
-    return <FuseLoading />;
-  }
+
+  useEffect(() => {
+    reset({ ...user, password: "" });
+  }, [user, reset]);
 
   const container = {
     show: {
@@ -99,21 +101,20 @@ const dispatch = useDispatch()
     show: { opacity: 1, y: 0 },
   };
 
-
-
-  useEffect(() => {
-    reset({ ...user });
-  }, [user, reset]);
-
-  async function onSubmit(data) {
-    
-    console.log("Updated Data", data);
-    dispatch(updateUserData(data));
-  }
-
   const handleSiteWeb = (event, newValue) => {
     console.log("new val", newValue);
   };
+  const [urlPhoto, setUrlPhot] = useState([]);
+  const handelChangePhotos = (newImages) => {
+    console.log("dataq", form);
+    form.photoURL = newImages;
+  };
+  !user && <FuseLoading />;
+  const p = () => {
+    console.log("data", form);
+    dispatch(updateUserData(form));
+  };
+
   return (
     <motion.div
       variants={container}
@@ -135,13 +136,13 @@ const dispatch = useDispatch()
               render={({ field: { onChange, value } }) => (
                 <Box
                   sx={{
-                    borderWidth: 4,
+                    borderWidth: 1,
                     borderStyle: "solid",
                     borderColor: "background.paper",
                   }}
                   className="relative flex items-center justify-center w-128 h-128 rounded-full overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-black bg-opacity-50 z-10" />
+                  
                   <div className="absolute inset-0 flex items-center justify-center z-20">
                     <div>
                       <label
@@ -154,33 +155,35 @@ const dispatch = useDispatch()
                           id="button-avatar"
                           type="file"
                           onChange={async (e) => {
-                            function readFileAsync() {
+                            const selectedFile = e.target.files[0]; // Sélectionnez seulement le premier fichier
+
+                            function readFileAsync(file) {
                               return new Promise((resolve, reject) => {
-                                const file = e.target.files[0];
-                                if (!file) {
-                                  return;
-                                }
                                 const reader = new FileReader();
-
                                 reader.onload = () => {
-                                  resolve(
-                                    `data:${file.type};base64,${btoa(
+                                  resolve({
+                                    id: FuseUtils.generateGUID(),
+                                    url: `data:${file.type};base64,${btoa(
                                       reader.result
-                                    )}`
-                                  );
+                                    )}`,
+                                    type: "image",
+                                  });
                                 };
-
                                 reader.onerror = reject;
-
                                 reader.readAsBinaryString(file);
                               });
                             }
 
-                            const newImage = await readFileAsync();
-
-                            onChange(newImage);
+                            if (selectedFile) {
+                              const newImage = await readFileAsync(
+                                selectedFile
+                              );
+                              console.log("dd", newImage);
+                              handelChangePhotos(newImage.url);
+                            }
                           }}
                         />
+
                         <FuseSvgIcon className="text-white">
                           heroicons-outline:camera
                         </FuseSvgIcon>
@@ -200,14 +203,14 @@ const dispatch = useDispatch()
                   </div>
                   <Avatar
                     sx={{
-                      backgroundColor: "background.default",
+                      backgroundColor: "background.paper",
                       color: "text.secondary",
                     }}
-                    className="object-cover w-full h-full text-64 font-bold"
-                    src={value}
-                    alt={data.firstName}
+                    className="avatar text-32 font-bold w-96 h-96"
+                    src={`http://localhost:5000/partners/${user.photoURL}`}
+                    alt={user.firstName}
                   >
-                    {data.firstName.charAt(0)}
+                    {user.firstName.charAt(0)}
                   </Avatar>
                 </Box>
               )}
@@ -303,6 +306,7 @@ const dispatch = useDispatch()
               className="mt-32"
               label="Password"
               type="password"
+              placeholder="Password"
               error={!!errors.password}
               helperText={errors?.password?.message}
               variant="outlined"
@@ -414,8 +418,8 @@ const dispatch = useDispatch()
               className="mt-32 mb-16 w-full"
               freeSolo
               options={
-                data.socialMedia && data.socialMedia.length > 0
-                  ? data.socialMedia
+                user.socialMedia && user.socialMedia.length > 0
+                  ? user.socialMedia
                   : []
               }
               renderInput={(params) => (
@@ -526,8 +530,7 @@ const dispatch = useDispatch()
             className="ml-8"
             variant="contained"
             color="secondary"
-            // disabled={!isFormModified || _.isEmpty(dirtyFields) || !isValid}
-            onClick={handleSubmit(onSubmit)}
+            onClick={p}
           >
             Save
           </Button>

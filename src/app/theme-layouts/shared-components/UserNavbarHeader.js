@@ -30,17 +30,20 @@ function UserNavbarHeader(props) {
   return (
     <Root className="user relative flex flex-col items-center justify-center p-16 pb-14 shadow-0">
       <div className="flex items-center justify-center mb-24">
-        <Avatar
-          sx={{
-            backgroundColor: 'background.paper',
-            color: 'text.secondary',
-          }}
-          className="avatar text-32 font-bold w-96 h-96"
-          src={user.photoURL}
-          alt={user.firstName}
-        >
-          {user.firstName.charAt(0)}
-        </Avatar>
+
+      {user.photoURL && user.role[0] === 'admin' ? (
+        <Avatar className="avatar text-32 font-bold w-96 h-96" alt="user photo" src={`http://localhost:5000/partners/${user.photoURL}`} />
+      ) : user.photoURL && user.role[0] === 'staff' ? (
+        <Avatar className="avatar text-32 font-bold w-96 h-96" alt="user photo" src={`http://localhost:5000/users/${user.photoURL}`} />
+      ) : (
+        <Avatar  sx={{
+          backgroundColor: 'background.paper',
+          color: 'text.secondary',
+        }} className="avatar text-32 font-bold w-96 h-96">{user.firstName.charAt(0)}</Avatar>
+      )}
+
+
+       
       </div>
       <Typography className="username text-14 whitespace-nowrap font-medium">
         {user.firstName}

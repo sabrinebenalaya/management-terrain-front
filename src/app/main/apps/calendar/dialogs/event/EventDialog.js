@@ -36,6 +36,7 @@ import Grid from "@mui/material/Grid";
 import Radio from "@mui/material/Radio";
 // import Switch from "@mui/material/Switch";
 import RadioGroup from "@mui/material/RadioGroup";
+import { selectALLTerrains } from "../../../terrains/store/terrainsSlice";
 /**
  * Form Validation Schema
  */
@@ -103,6 +104,9 @@ function EventDialog(props) {
     5: "value5",
     // etc.
   };
+  const groupedFilteredContacts = useSelector(selectALLTerrains) || [];
+
+console.log("groupedFilteredContacts", groupedFilteredContacts); 
   const { reset, formState, watch, control, getValues } = useForm({
     defaultValues: {
       ...defaultValues,
@@ -198,6 +202,8 @@ function EventDialog(props) {
     closeComposeDialog();
   }
   const timeFormat = "HH:mm";
+
+
   return (
     <Popover
       {...eventDialog.props}
@@ -218,7 +224,8 @@ function EventDialog(props) {
           <Grid item xs={4}>
             {/* Add the RadioGroup and Radio components here */}
             {/* <TerrainRadio FieldData={dispatch(getfields())} /> */}
-            <TerrainRadio FieldData={Fielddict} zontroller={control}/>
+            <TerrainRadio FieldData={Fielddict} zontroller={control} />
+
           </Grid>
           <Grid item xs={8}>
             <div className="flex sm:space-x-24 mb-16">

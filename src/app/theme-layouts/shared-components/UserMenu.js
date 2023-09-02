@@ -44,12 +44,15 @@ function UserMenu(props) {
               : "Guest"}
           </Typography>
         </div> 
-
-        {user.photoURL ? (
-          <Avatar className="md:mx-4" alt="user photo" src={user.photoURL} />
+         
+        {user.photoURL && user.role[0] === 'admin' ? (
+          <Avatar className="md:mx-4" alt="user photo" src={`http://localhost:5000/partners/${user.photoURL}`} />
+        ) : user.photoURL && user.role[0] === 'staff' ? (
+          <Avatar className="md:mx-4" alt="user photo" src={`http://localhost:5000/users/${user.photoURL}`} />
         ) : (
-          <Avatar className="md:mx-4">{user.firstName}</Avatar>
+          <Avatar className="md:mx-4">{user.firstName.charAt(0)}</Avatar>
         )}
+        
       </Button>
 
       <Popover

@@ -77,7 +77,7 @@ function ProfileApp() {
                 <Avatar
                   sx={{ borderColor: "background.paper" }}
                   className="w-128 h-128 border-4"
-                  src={user.photoURL}
+                  src={`http://localhost:5000/partners/${user.photoURL}`}
                   alt="User avatar"
                 />
               </motion.div>

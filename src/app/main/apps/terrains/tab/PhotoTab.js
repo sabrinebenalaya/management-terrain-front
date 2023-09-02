@@ -58,12 +58,14 @@ function PhotoTab(props) {
   const handelChangePhotos = (newImages) => {
     setUrlPhot((prevPhotos) => [...prevPhotos, ...newImages.map((image) => image.url)]);
   };
-  console.log('urlPhoto before:', urlPhoto);
+
+  
   if (urlPhoto.length > 0) {
     dispatch(updateTerrainPhoto({ urlPhoto, id: terrain._id })).then(() => {
       navigate('/apps/terrain');
     });
   }
+
 
   return (
     <Root>
@@ -125,13 +127,14 @@ function PhotoTab(props) {
           )}
         />
         <Controller
-          name="featuredImageId"
-          control={control}
-          defaultValue=""
-          render={({ field: { onChange, value } }) =>
+        name="featuredImageId"
+        control={control}
+        defaultValue=""
+        render={({ field: { onChange, value } }) =>
+          Array.isArray(terrain.photo) ? (
             terrain.photo.map((imageURL, index) => (
               <div
-                onClick={() => onChange(index)} // Utilisation de l'index comme valeur ici
+                onClick={() => onChange(index)}
                 onKeyDown={() => onChange(index)}
                 role="button"
                 tabIndex={0}
@@ -149,8 +152,11 @@ function PhotoTab(props) {
                 />
               </div>
             ))
-          }
-        />
+          ) : null
+        }
+      />
+      
+      
       </div>
     </Root>
   );

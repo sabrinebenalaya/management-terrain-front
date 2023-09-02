@@ -21,10 +21,11 @@ const itemVariants = {
 
 function TerrainsList(props) {
   const groupedFilteredContacts = useSelector(selectALLTerrains);
+   console.log(groupedFilteredContacts)
   if (!groupedFilteredContacts) {
     return null;
   }
-
+ 
   return (
     <div className="flex grow shrink-0 flex-col items-center container p-24 sm:p-40">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 0.1 } }}>

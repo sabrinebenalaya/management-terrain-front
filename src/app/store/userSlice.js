@@ -5,8 +5,10 @@ import _ from "@lodash";
 import { setInitialSettings } from "app/store/fuse/settingsSlice";
 import { showMessage } from "app/store/fuse/messageSlice";
 import settingsConfig from "app/configs/settingsConfig";
-import jwtService from "../auth/services/jwtService";
 import axios from "axios";
+import jwtService from "../auth/services/jwtService";
+
+
 export const setUser = createAsyncThunk(
   "user/setUser",
   async (user, { dispatch, getState }) => {
@@ -74,10 +76,19 @@ export const updateUserData = createAsyncThunk(
   
 console.log("user", user)
     try {
-      const response = await axios.put(
-        `http://localhost:5000/partners/update/${user._id}`,
-        user
-      );
+      const response = null
+      if (user.role[0]=== "admin"){
+         response = await axios.put(
+          `http://localhost:5000/partners/update/${user._id}`,
+          user
+        );
+      }else{
+         response = await axios.put(
+          `http://localhost:5000/users/update/${user._id}`,
+          user
+        );
+      }
+    
       console.log("aa", response);
       const data = await response.data;
       console.log("res", data);
