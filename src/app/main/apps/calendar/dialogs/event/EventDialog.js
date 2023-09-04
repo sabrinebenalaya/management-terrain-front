@@ -1,130 +1,87 @@
-import { yupResolver } from "@hookform/resolvers/yup";
-import { Controller, useForm } from "react-hook-form";
-import FuseUtils from "@fuse/utils/FuseUtils";
-import Button from "@mui/material/Button";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import IconButton from "@mui/material/IconButton";
-import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { useState, useCallback, useEffect } from 'react';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Controller, useForm } from 'react-hook-form';
+import FuseUtils from '@fuse/utils/FuseUtils';
+import Button from '@mui/material/Button';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import IconButton from '@mui/material/IconButton';
+import TextField from '@mui/material/TextField';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { useDispatch, useSelector } from 'react-redux';
+import * as yup from 'yup';
+import _ from '@lodash';
+import { Popover } from '@mui/material';
+import FuseSvgIcon from '@fuse/core/FuseSvgIcon';
+import RadioGroup from '@mui/material/RadioGroup';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import Radio from '@mui/material/Radio';
+import Grid from '@mui/material/Grid';
+import { selectUser } from 'app/store/userSlice';
+import classnames from 'classnames';
 
-import { useCallback, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import * as yup from "yup";
-import _ from "@lodash";
-import { Popover } from "@mui/material";
-import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
 import {
-  getfields,
   addEvent,
   closeEditEventDialog,
   closeNewEventDialog,
+  getAllRrservationInThisDate,
   removeEvent,
   selectEventDialog,
+  selectReservationsWithDate,
   updateEvent,
-} from "../../store/eventsSlice";
-import EventLabelSelect from "../../EventLabelSelect";
-import EventModel from "../../model/EventModel";
-import { selectFirstLabelId } from "../../store/labelsSlice";
+} from '../../store/eventsSlice';
 
-import SendIcon from "@mui/icons-material/Send";
-import SearchIcon from "@mui/icons-material/Search";
+import EventModel from '../../model/EventModel';
+import { selectFirstLabelId } from '../../store/labelsSlice';
+import { getTerrains, selectALLTerrains } from '../../../terrains/store/terrainsSlice';
+
+
 
 const defaultValues = EventModel();
-import { useState } from "react";
-import Grid from "@mui/material/Grid";
-import Radio from "@mui/material/Radio";
-// import Switch from "@mui/material/Switch";
-import RadioGroup from "@mui/material/RadioGroup";
-import { selectALLTerrains } from "../../../terrains/store/terrainsSlice";
 /**
  * Form Validation Schema
  */
 const schema = yup.object().shape({
-  title: yup.string().required("You must enter a title"),
+  phone: yup
+    .string()
+    .matches(
+      /^[2-57943]\d{7}$/,
+      'Phone number must start with 2, 5, 9, 4, 7, or 3 and must contain exactly 8 digits.'
+    )
+    .required('You must enter a phone number'),
 });
-
-function TerrainRadio({ FieldData,zontroller }) {
-  // State to hold the selected radio value
-  const [selectedRadioValue, setSelectedRadioValue] = useState(
-    Object.values(FieldData)[0]
-  );
-
-  // Function to handle the change in the selected radio value
-  const handleRadioChange = (event) => {
-    setSelectedRadioValue(event.target.value);
-    console.log("clicked! on  " + event.target.value);
-    // this.setState({ phone: event.target.value });
-    // set phone
-  };
-
-  return (
-    <div className="flex sm:space-x-0 mb-16">
-      <FuseSvgIcon className="hidden sm:inline-flex mt-16" color="action">
-        heroicons-outline:radio
-      </FuseSvgIcon>
-      <Controller
-        name="terrain"
-        control={zontroller}
-        defaultValue={Object.values(FieldData)[0]}
-        render={({ field }) => (
-          <RadioGroup
-            {...field}
-            name="terrain"
-            // defaultValue={Object.values(FieldData)[0]}
-            // value={selectedRadioValue}
-            value={field.value === null ? Object.values(FieldData)[0] : field.value } // Use the field value from Controller to set the selected radio value
-            // onChange={handleRadioChange}
-          >
-            {Object.keys(FieldData).map((key) => (
-              <FormControlLabel
-                key={key}
-                value={FieldData[key]}
-                control={<Radio />}
-                label={FieldData[key] + key}
-              />
-            ))}
-            {/* Add more radio options as needed */}
-          </RadioGroup>
-        )}
-      />
-    </div>
-  );
-}
 
 function EventDialog(props) {
   const dispatch = useDispatch();
   const eventDialog = useSelector(selectEventDialog);
   const firstLabelId = useSelector(selectFirstLabelId);
-  var Fielddict = {
-    1: "value1",
-    2: "value2",
-    3: "value3",
-    4: "value4",
-    5: "value5",
-    // etc.
-  };
-  const groupedFilteredContacts = useSelector(selectALLTerrains) || [];
+  const user = useSelector(selectUser);
+  const ListOfTerrain = useSelector(selectALLTerrains) || [];
 
-console.log("groupedFilteredContacts", groupedFilteredContacts); 
-  const { reset, formState, watch, control, getValues } = useForm({
-    defaultValues: {
-      ...defaultValues,
-      terrain: Object.values(Fielddict)[0], // Set the default value for the terrain field
-    },
-    mode: "onChange",
+  const ReservationsWithDate = useSelector(selectReservationsWithDate);
+
+  const { control, watch, reset, handleSubmit, formState, getValues } = useForm({
+    mode: 'onChange',
     resolver: yupResolver(schema),
   });
 
   const { isValid, dirtyFields, errors } = formState;
 
+  const form = watch();
   const start = watch("start");
   const end = watch("end");
-  const id = watch("id");
+  const id = watch("_id");
   const phone = watch("phone");
 
-  // Object literal with properties
+  useEffect(() => {
+    // Appeler l'action pour récupérer la liste des terrains
+    dispatch(getTerrains(user._id));
+    dispatch(getAllRrservationInThisDate(start, end))
+    
+  }, [dispatch, start, end]);
 
+  console.log("ReservationsWithDate", ReservationsWithDate)
+  // Object literal with properties
 
   /**
    * Initialize Dialog with Data
@@ -133,14 +90,14 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
     /**
      * Dialog type: 'edit'
      */
-    if (eventDialog.type === "edit" && eventDialog.data) {
+    if (eventDialog.type === 'edit' && eventDialog.data) {
       reset({ ...eventDialog.data });
     }
 
     /**
      * Dialog type: 'new'
      */
-    if (eventDialog.type === "new") {
+    if (eventDialog.type === 'new') {
       reset({
         ...defaultValues,
         ...eventDialog.data,
@@ -151,7 +108,7 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
         id: FuseUtils.generateGUID(),
       });
     }
-  }, [eventDialog.data, eventDialog.type, reset]);
+  }, [eventDialog.data, eventDialog.type, firstLabelId, reset]);
 
   /**
    * On Dialog Open
@@ -166,7 +123,7 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
    * Close Dialog
    */
   function closeComposeDialog() {
-    return eventDialog.type === "edit"
+    return eventDialog.type === 'edit'
       ? dispatch(closeEditEventDialog())
       : dispatch(closeNewEventDialog());
   }
@@ -178,7 +135,7 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
     ev.preventDefault();
     const data = getValues();
     console.log(data);
-    if (eventDialog.type === "new") {
+    if (eventDialog.type === 'new') {
       dispatch(addEvent(data));
     } else {
       dispatch(updateEvent({ ...eventDialog.data, ...data }));
@@ -201,68 +158,82 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
     dispatch(removeEvent(id));
     closeComposeDialog();
   }
-  const timeFormat = "HH:mm";
-
-
+  const timeFormat = 'HH:mm';
+  const [selectedPhone, setSelectedPhone] = useState('');
+  
+  const [selectedTerrainId, setSelectedTerrainId] = useState(''); 
   return (
     <Popover
       {...eventDialog.props}
       anchorReference="anchorPosition"
       anchorOrigin={{
-        vertical: "center",
-        horizontal: "right",
+        vertical: 'center',
+        horizontal: 'right',
       }}
       transformOrigin={{
-        vertical: "center",
-        horizontal: "left",
+        vertical: 'center',
+        horizontal: 'left',
       }}
       onClose={closeComposeDialog}
       component="form"
     >
       <div className="flex flex-col max-w-full p-24 pt-32 sm:pt-40 sm:p-32 w-640">
         <Grid container spacing={1}>
-          <Grid item xs={4}>
-            {/* Add the RadioGroup and Radio components here */}
-            {/* <TerrainRadio FieldData={dispatch(getfields())} /> */}
-            <TerrainRadio FieldData={Fielddict} zontroller={control} />
+        <Grid item xs={4}>
+        {/* Liste des terrains */}
+        {ListOfTerrain.map((terrain) => {
+          // Vérifiez si le terrain est réservé dans ReservationsWithDate
+          const isReserved = ReservationsWithDate.some((reservation) => reservation.terrain === terrain._id);
 
-          </Grid>
-          <Grid item xs={8}>
-            <div className="flex sm:space-x-24 mb-16">
-              <FuseSvgIcon
-                className="hidden sm:inline-flex mt-16"
-                color="action"
-              >
-                heroicons-outline:pencil-alt
+          return (
+            <div
+              className={classnames('flex sm:space-x-0 mb-16', {
+                'text-red-500': isReserved, // Appliquez la classe de couleur rouge si le terrain est réservé
+              })}
+              key={terrain._id}
+            >
+              <FuseSvgIcon className="hidden sm:inline-flex mt-16" color="action">
+                heroicons-outline:radio
               </FuseSvgIcon>
               <Controller
-                name="title"
+                name="terrain"
                 control={control}
                 render={({ field }) => (
-                  <TextField
+                  <RadioGroup
                     {...field}
-                    id="title"
-                    label="Title"
-                    className="flex-auto"
-                    error={!!errors.title}
-                    helperText={errors?.title?.message}
-                    InputLabelProps={{
-                      shrink: true,
+                    onChange={(event) => {
+                      const idTerrain = event.target.value;
+                      const selectedReservation = ReservationsWithDate.find(
+                        (reservation) => reservation.terrain === idTerrain
+                      );
+                      const phoneReservation = selectedReservation
+                        ? selectedReservation.phone
+                        : '';
+                          setSelectedTerrainId(idTerrain);
+                          setSelectedPhone(phoneReservation);
+              
+                      field.onChange(phoneReservation);
                     }}
-                    variant="outlined"
-                    autoFocus
-                    required
-                    fullWidth
-                  />
+
+                  >
+                    <FormControlLabel
+                      key={terrain._id}
+                      value={terrain._id}
+                      control={<Radio />}
+                      label={terrain.name}
+                      checked={terrain._id === selectedTerrainId} 
+                    />
+                  </RadioGroup>
                 )}
               />
             </div>
-
+          );
+          
+        })}
+      </Grid>
+          <Grid item xs={8}>
             <div className="flex sm:space-x-24 mb-16">
-              <FuseSvgIcon
-                className="hidden sm:inline-flex mt-16"
-                color="action"
-              >
+              <FuseSvgIcon className="hidden sm:inline-flex mt-16" color="action">
                 heroicons-outline:calendar
               </FuseSvgIcon>
               <div className="w-full">
@@ -277,12 +248,12 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
                         onChange={onChange}
                         slotProps={{
                           textField: {
-                            label: "Start",
-                            variant: "outlined",
+                            label: 'Start',
+                            variant: 'outlined',
                           },
                         }}
                         maxDate={end}
-                        format={timeFormat} // Set the format prop to the desired time format.
+                        format={timeFormat}
                       />
                     )}
                   />
@@ -298,124 +269,73 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
                         onChange={onChange}
                         slotProps={{
                           textField: {
-                            label: "End",
-                            variant: "outlined",
+                            label: 'End',
+                            variant: 'outlined',
                           },
                         }}
                         minDate={start}
-                        format={timeFormat} // Set the format prop to the desired time format.
+                        format={timeFormat} 
                       />
                     )}
                   />
                 </div>
-
-                {/* <Controller
-              name="allDay"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <FormControlLabel
-                  className="mt-8"
-                  label="All Day"
-                  control={
-                    <Switch
-                      onChange={(ev) => {
-                        onChange(ev.target.checked);
-                      }}
-                      checked={value}
-                      name="allDay"
-                    />
-                  }
-                />
-              )}
-            /> */}
               </div>
             </div>
 
             <div className="flex sm:space-x-24 mb-16">
-              <FuseSvgIcon
-                className="hidden sm:inline-flex mt-16"
-                color="action"
-              >
-                heroicons-outline:tag
-              </FuseSvgIcon>
-
-              <Controller
-                name="extendedProps.label"
-                control={control}
-                render={({ field }) => (
-                  <EventLabelSelect className="mt-8 mb-16" {...field} />
-                )}
-              />
-            </div>
-
-            <div className="flex sm:space-x-24 mb-16">
-              <FuseSvgIcon
-                className="hidden sm:inline-flex mt-16"
-                color="action"
-              >
+              <FuseSvgIcon className="hidden sm:inline-flex mt-16" color="action">
                 heroicons-outline:phone
               </FuseSvgIcon>
               <Controller
-                name="phone"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    id="phone"
-                    label="Phone"
-                    className="flex-auto"
-                    error={!!errors.title}
-                    helperText={errors?.title?.message}
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    variant="outlined"
-                    autoFocus
-                    required
-                    fullWidth
-                  />
-                )}
-              />
+                  name="phone"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      id="phone"
+                      type='number'
+                      label="Phone"
+                      className="flex-auto"
+                      error={!!errors.phone}
+                      helperText={errors?.phone?.message}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      variant="outlined"
+                      autoFocus
+                      required
+                      fullWidth
+                      value={selectedPhone} 
+                    />
+                  )}
+                />
               <IconButton
                 aria-label="Search"
                 onClick={handleButtonClick}
-                style={{ marginTop: "8px" }}
+                style={{ marginTop: '8px' }}
               >
                 <SearchIcon />
               </IconButton>
-              {/* <FuseSvgIcon className="hidden sm:inline-flex mt-16" color="action">
-            heroicons-outline:menu-alt-2
-          </FuseSvgIcon> */}
-              {/* <Controller
-            name="extendedProps.desc"
-            control={control}
-            render={({ field }) => 
-              <TextField
-                {...field}
-                className="mt-8 mb-16"
-                id="desc"
-                label="Description"
-                type="text"
-                multiline
-                rows={5}
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          /> */}
             </div>
           </Grid>
         </Grid>
-        {eventDialog.type === "new" ? (
+
+        {eventDialog.type === 'new' ? (
           <div className="flex items-center space-x-8">
             <div className="flex flex-1" />
             <Button
+              className="ml-8"
               variant="contained"
-              color="primary"
+              startIcon={<DeleteIcon />}
               onClick={onSubmit}
-              disabled={_.isEmpty(dirtyFields) || !isValid}
             >
-              Add
+              Delete
+            </Button>
+            <Button className="ml-8" variant="contained" color="error" onClick={onSubmit}>
+              Cancel
+            </Button>
+            <Button className="ml-8" variant="contained" color="secondary" onClick={onSubmit}>
+              Save
             </Button>
           </div>
         ) : (
@@ -424,26 +344,19 @@ console.log("groupedFilteredContacts", groupedFilteredContacts);
             <IconButton onClick={handleRemove} size="large">
               <FuseSvgIcon>heroicons-outline:trash</FuseSvgIcon>
             </IconButton>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onSubmit}
-              disabled={_.isEmpty(dirtyFields) || !isValid}
-            >
+            <Button variant="contained" color="primary" onClick={onSubmit}>
               Save
             </Button>
           </div>
         )}
 
-        <div style={{ textAlign: "center", marginTop: "16px" }}>
+        <div style={{ textAlign: 'center', marginTop: '16px' }}>
           {/* Display the "Hello World" message based on the state */}
-          <div style={{ minHeight: "150px" }}>
-            {showHelloWorld && <div>Hello World</div>}
-          </div>
+          <div style={{ minHeight: '150px' }}>{showHelloWorld && <div>Hello World</div>}</div>
         </div>
       </div>
     </Popover>
   );
 }
 
-export default EventDialog;
+export default EventDialog;

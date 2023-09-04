@@ -18,7 +18,7 @@ function TerrainView() {
   const routeParams = useParams();
   const dispatch = useDispatch();
   const terrain = useSelector(selectTerrain);
-  console.log("terrain", terrain);
+  console.log("routeParams.id", routeParams.id);
   useEffect(() => {
     dispatch(getTerrain(routeParams.id));
   }, [dispatch, routeParams]);

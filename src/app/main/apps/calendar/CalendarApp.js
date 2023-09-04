@@ -93,6 +93,13 @@ const Root = styled(FusePageSimple)(({ theme }) => ({
     fontSize: 12,
     margin: '0 6px 4px 6px!important',
   },
+  //this section for grid size
+  '.fc .fc-timegrid-slot': {
+    borderBottom: '0px',
+    height: '3.5em',
+    // width: '10em',
+    // height: '7em',
+  }
 }));
 
 function CalendarApp(props) {
@@ -118,7 +125,7 @@ function CalendarApp(props) {
     // Correct calendar dimentions after sidebar toggles
     setTimeout(() => {
       calendarRef.current?.getApi()?.updateSize();
-    }, 300);
+    }, 200);
   }, [leftSidebarOpen]);
 
   const handleDateSelect = (selectInfo) => {
@@ -127,12 +134,12 @@ function CalendarApp(props) {
   };
 
   const handleEventDrop = (eventDropInfo) => {
-    const { id, title, allDay, start, end, extendedProps } = eventDropInfo.event;
+    const { id, title, start, end, extendedProps } = eventDropInfo.event;
     dispatch(
       updateEvent({
         id,
         title,
-        allDay,
+       // allDay,
         start,
         end,
         extendedProps,
@@ -149,13 +156,20 @@ function CalendarApp(props) {
 
   const handleEventAdd = (addInfo) => {};
 
-  const handleEventChange = (changeInfo) => {};
+  const handleEventChange = (changeInfo) => {
+    eventBackgroundColor="yellow"
+  };
 
   const handleEventRemove = (removeInfo) => {};
 
   function handleToggleLeftSidebar() {
     setLeftSidebarOpen(!leftSidebarOpen);
   }
+  const formatTime = (date) => {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
 
   return (
     <>
@@ -171,33 +185,51 @@ function CalendarApp(props) {
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             headerToolbar={false}
-            initialView="dayGridMonth"
+            initialView="timeGridWeek"
             editable
             selectable
+            // expandRows={true}
+            aspectRatio={2}
             selectMirror
             dayMaxEvents
             weekends
             datesSet={handleDates}
             select={handleDateSelect}
             events={events}
-            eventContent={(eventInfo) => <CalendarAppEventContent eventInfo={eventInfo} />}
+            eventContent={(eventInfo) => <CalendarAppEventContent eventInfo={eventInfo} backgroundColor='yellow'/>}
             eventClick={handleEventClick}
             eventAdd={handleEventAdd}
             eventChange={handleEventChange}
             eventRemove={handleEventRemove}
             eventDrop={handleEventDrop}
-            initialDate={new Date(2022, 3, 1)}
+            // eventBackgroundColor="yellow"
+            // eventColor ="green"
+            initialDate={new Date()}
             ref={calendarRef}
+            // Set the desired time slot interval and limits
+            slotDuration="01:30:00" // One-hour slots
+            slotMinTime="00:00:00" // Start time (adjust as needed)
+            //slotMaxTime="24:00:00" // End time (adjust as needed)
+            firstDay={1} // Set the first day of the week to Monday (1 represents Monday)
+            slotLabelContent={(arg) => formatTime(arg.date)} // Set the custom function for formatting the time
+            slotLabelFormat={{
+              hour12: false,
+              hour: '2-digit',
+              minute: '2-digit',
+              meridiem: false,
+              hourCycle: 'h24',
+              omitZeroMinute: false, // Set to true if you want to remove the ':00' from time slots like '15:00'
+            }}
           />
         }
-        leftSidebarContent={<CalendarAppSidebar />}
-        leftSidebarOpen={leftSidebarOpen}
-        leftSidebarOnClose={() => setLeftSidebarOpen(false)}
-        leftSidebarWidth={240}
+         // leftSidebarContent={<CalendarAppSidebar />} // add Calendar Bar
+        // leftSidebarOpen={leftSidebarOpen} // add Calendar Bar
+        // leftSidebarOnClose={() => setLeftSidebarOpen(false)} // add Calendar Bar
+        // leftSidebarWidth={240} // add Calendar Bar
         scroll="content"
       />
       <EventDialog />
-      <LabelsDialog />
+      {/* <LabelsDialog /> */}
     </>
   );
 }

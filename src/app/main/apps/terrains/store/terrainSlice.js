@@ -9,12 +9,12 @@ export const getTerrain = createAsyncThunk(
   async (id, { dispatch, getState }) => {
     try {
       const response = await axios.get(`http://localhost:5000/terrains/getTerrain/${id}`);
-
+console.log("response", response)
       const data = await response.data;
 
       return data;
     } catch (error) {
-      history.push({ pathname: `apps/terrain` });
+      console.log(error);
 
       return null;
     }

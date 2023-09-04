@@ -17,6 +17,24 @@ export const getEvents = createAsyncThunk('calendarApp/events/getEvents', async 
   return data;
 });
 
+export const getAllRrservationInThisDate = createAsyncThunk('calendarApp/events/getAllRrservationInThisDate',
+  async ({ start, end }, { dispatch, getState }) => {
+    try {
+      const response = await axios.get(
+        'http://localhost:5000/reservations/getReservationWithDate',
+        start,
+        end
+      );
+      console.log('response', response);
+      const data = await response.data;
+
+      return data;
+    } catch (error) {
+    console.log(error);
+
+    return null;
+  }
+});
 export const addEvent = createAsyncThunk(
   'calendarApp/events/addEvent',
   async (newEvent, { dispatch }) => {
@@ -66,6 +84,7 @@ const eventsSlice = createSlice({
       },
       data: null,
     },
+    reservationsWithDate: [], 
   }),
   reducers: {
     openNewEventDialog: {
@@ -140,6 +159,9 @@ const eventsSlice = createSlice({
     [addEvent.fulfilled]: eventsAdapter.addOne,
     [updateEvent.fulfilled]: eventsAdapter.upsertOne,
     [removeEvent.fulfilled]: eventsAdapter.removeOne,
+    [getAllRrservationInThisDate.fulfilled]: (state, action) => {
+      state.reservationsWithDate = action.payload; // Stockez les réservations par date
+    },
   },
 });
 
@@ -156,6 +178,9 @@ export const selectFilteredEvents = createSelector(
     return events.filter((item) => selectedLabels.includes(item.extendedProps.label));
   }
 );
+
+export const selectReservationsWithDate = (state) => state.calendarApp.events.reservationsWithDate;
+
 
 export const selectEventDialog = ({ calendarApp }) => calendarApp.events.eventDialog;
 
