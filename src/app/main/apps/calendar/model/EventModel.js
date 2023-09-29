@@ -2,11 +2,11 @@ import _ from '@lodash';
 
 const EventModel = (data) =>
   _.defaults(data || {}, {
-    title: '',
-    allDay: true,
+    partner: '',
+    terrain: '',
     start: new Date(),
     end: new Date(),
-    extendedProps: { desc: '', label: '' },
+   phone: 0,
   });
 
 export default EventModel;

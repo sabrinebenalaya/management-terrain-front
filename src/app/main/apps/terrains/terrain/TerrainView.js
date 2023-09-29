@@ -1,7 +1,8 @@
+import { useEffect } from 'react';
 import Button from "@mui/material/Button";
 import NavLinkAdapter from "@fuse/core/NavLinkAdapter";
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
+
 import { useDispatch, useSelector } from "react-redux";
 import FuseLoading from "@fuse/core/FuseLoading";
 import Divider from "@mui/material/Divider";
@@ -10,9 +11,9 @@ import Box from "@mui/system/Box";
 
 import "react-slideshow-image/dist/styles.css";
 import _ from "@lodash";
-import { selectTerrain, getTerrain } from "../store/terrainSlice";
-import React from "react";
+
 import { Slide } from "react-slideshow-image";
+import { selectTerrain, getTerrain } from "../store/terrainSlice";
 
 function TerrainView() {
   const routeParams = useParams();
@@ -56,7 +57,7 @@ function TerrainView() {
                       ...divStyle,
                       backgroundImage: `url(${slideImage})`,
                     }}
-                  ></div>
+                   />
                 </div>
               ))
             ) : (
@@ -77,7 +78,7 @@ function TerrainView() {
       </Box>
       <div className="relative flex flex-col flex-auto items-center p-24 pt-0 sm:p-48 sm:pt-0">
         <div className="w-full max-w-3xl" style={{ marginTop: "100px" }}>
-          <div className="flex flex-auto items-end -mt-64"></div>
+          <div className="flex flex-auto items-end -mt-64" />
 
           {terrain.name && (
             <div className="flex items-center">

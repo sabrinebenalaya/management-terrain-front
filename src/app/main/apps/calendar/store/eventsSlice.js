@@ -10,37 +10,41 @@ import { selectSelectedLabels } from './labelsSlice';
 
 export const dateFormat = 'YYYY-MM-DDTHH:mm:ss.sssZ';
 
-export const getEvents = createAsyncThunk('calendarApp/events/getEvents', async () => {
-  const response = await axios.get('/api/calendar/events');
+export const getEvents = createAsyncThunk('calendarApp/events/getEvents', async (idPartner) => {
+ 
+  const response = await axios.get(`http://localhost:5000/reservations/getPartnerReservation/${idPartner}`);
   const data = await response.data;
-
+console.log("data", data)
   return data;
 });
 
 export const getAllRrservationInThisDate = createAsyncThunk('calendarApp/events/getAllRrservationInThisDate',
   async ({ start, end }, { dispatch, getState }) => {
+    console.log("start", start);
+    console.log("end", end);
+
     try {
       const response = await axios.get(
         'http://localhost:5000/reservations/getReservationWithDate',
-        start,
-        end
+        { params: { start, end } } // Utilisation de params pour envoyer start et end
       );
-      console.log('response', response);
-      const data = await response.data;
 
+      console.log('response', response);
+
+      const data = await response.data;
       return data;
     } catch (error) {
-    console.log(error);
-
-    return null;
-  }
+      console.log(error);
+      return null;
+    }
 });
+
 export const addEvent = createAsyncThunk(
   'calendarApp/events/addEvent',
   async (newEvent, { dispatch }) => {
-    const response = await axios.post('/api/calendar/events', newEvent);
+    const response = await axios.post('http://localhost:5000/reservations/add', newEvent);
     const data = await response.data;
-
+console.log("result data api du back", data)
     return data;
   }
 );
@@ -48,9 +52,10 @@ export const addEvent = createAsyncThunk(
 export const updateEvent = createAsyncThunk(
   'calendarApp/events/updateEvent',
   async (event, { dispatch }) => {
-    const response = await axios.put(`/api/calendar/events/${event.id}`, event);
+    console.log("event",event)
+    const response = await axios.put(`http://localhost:5000/reservations/update/${event._id}`, event);
     const data = await response.data;
-
+    console.log("result data api du back update", data)
     return data;
   }
 );
@@ -58,14 +63,14 @@ export const updateEvent = createAsyncThunk(
 export const removeEvent = createAsyncThunk(
   'calendarApp/events/removeEvent',
   async (eventId, { dispatch }) => {
-    const response = await axios.delete(`/api/calendar/events/${eventId}`);
+    const response = await axios.delete(`http://localhost:5000/reservations/delete/${eventId}`);
     const data = await response.data;
 
     return data;
   }
 );
 
-const eventsAdapter = createEntityAdapter({});
+const eventsAdapter = createEntityAdapter({  selectId: (event) => event._id});
 
 export const {
   selectAll: selectEvents,
@@ -175,10 +180,10 @@ export const {
 export const selectFilteredEvents = createSelector(
   [selectSelectedLabels, selectEvents],
   (selectedLabels, events) => {
-    return events.filter((item) => selectedLabels.includes(item.extendedProps.label));
+    return events
   }
 );
-
+// j'ai enlever .filter((item) => selectedLabels.includes(item.extendedProps.label));
 export const selectReservationsWithDate = (state) => state.calendarApp.events.reservationsWithDate;
 
 

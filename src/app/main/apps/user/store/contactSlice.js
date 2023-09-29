@@ -60,7 +60,7 @@ export const updateContact = createAsyncThunk(
     );
 
     const data = await response.data;
-    console.log("res", data);
+
     return data;
   }
 );

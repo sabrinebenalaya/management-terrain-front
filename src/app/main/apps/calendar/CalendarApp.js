@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import { selectUser } from 'app/store/userSlice';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import FusePageSimple from '@fuse/core/FusePageSimple';
@@ -22,6 +23,7 @@ import { getLabels, selectLabels } from './store/labelsSlice';
 import LabelsDialog from './dialogs/labels/LabelsDialog';
 import CalendarAppSidebar from './CalendarAppSidebar';
 import CalendarAppEventContent from './CalendarAppEventContent';
+
 
 const Root = styled(FusePageSimple)(({ theme }) => ({
   '& a': {
@@ -111,9 +113,9 @@ function CalendarApp(props) {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(!isMobile);
   const theme = useTheme();
   const labels = useSelector(selectLabels);
-
+const partner = useSelector(selectUser)
   useEffect(() => {
-    dispatch(getEvents());
+    dispatch(getEvents(partner._id));
     dispatch(getLabels());
   }, [dispatch]);
 
