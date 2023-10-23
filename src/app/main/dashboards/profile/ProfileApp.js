@@ -7,12 +7,12 @@ import Typography from "@mui/material/Typography";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Box from "@mui/material/Box";
+import { useSelector } from "react-redux";
+import { selectUser } from "app/store/userSlice";
 import ConfigTab from "./tabs/ConfigTab";
 import EditProfileTab from "./tabs/EditProfileTab";
 import ProfileTab from "./tabs/ProfileTab";
 import useThemeMediaQuery from "../../../../@fuse/hooks/useThemeMediaQuery";
-import { useSelector } from "react-redux";
-import { selectUser } from "app/store/userSlice";
 
 const Root = styled(FusePageSimple)(({ theme }) => ({
   "& .FusePageSimple-header": {
@@ -29,7 +29,6 @@ const Root = styled(FusePageSimple)(({ theme }) => ({
 function ProfileApp() {
   const user = useSelector(selectUser);
 
-
   const [selectedTab, setSelectedTab] = useState(0);
   const isMobile = useThemeMediaQuery((theme) => theme.breakpoints.down("lg"));
 
@@ -38,11 +37,11 @@ function ProfileApp() {
   }
   async function handleSubmit(profileData) {
     try {
+      // eslint-disable-next-line no-undef
       const profil = await axios.post(
         `http://localhost:5000/partners/update/${user._id}`,
         profileData
       );
-
     } catch (error) {
       if (error.response && error.response.status === 400) {
         toast.error(error.response.data.msg);
@@ -87,7 +86,7 @@ function ProfileApp() {
               <Typography className="text-lg font-bold leading-none">
                 {user.firstName} {user.lastName}
               </Typography>
-              <Typography color="text.secondary">London, UK</Typography>
+              <Typography color="text.secondary"> {user.email}</Typography>
             </div>
 
             <div className="hidden lg:flex h-32 mx-32 border-l-2" />
@@ -137,7 +136,7 @@ function ProfileApp() {
         <div className="flex flex-auto justify-center w-full max-w-5xl mx-auto p-24 sm:p-32">
           {selectedTab === 0 && <ProfileTab />}
           {selectedTab === 1 && <ConfigTab />}
-          {selectedTab === 2 && <EditProfileTab handleSubmit={handleSubmit}/>}
+          {selectedTab === 2 && <EditProfileTab handleSubmit={handleSubmit} />}
         </div>
       }
       scroll={isMobile ? "normal" : "page"}

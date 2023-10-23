@@ -17,7 +17,7 @@ import {
   openEditEventDialog,
   openNewEventDialog,
   selectFilteredEvents,
-  updateEvent,
+  updateEvent,removeEvent,
 } from './store/eventsSlice';
 import { getLabels, selectLabels } from './store/labelsSlice';
 import LabelsDialog from './dialogs/labels/LabelsDialog';
@@ -108,6 +108,7 @@ function CalendarApp(props) {
   const [currentDate, setCurrentDate] = useState();
   const dispatch = useDispatch();
   const events = useSelector(selectFilteredEvents);
+  console.log("events", events)
   const calendarRef = useRef();
   const isMobile = useThemeMediaQuery((theme) => theme.breakpoints.down('lg'));
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(!isMobile);
@@ -162,7 +163,12 @@ const partner = useSelector(selectUser)
     eventBackgroundColor="yellow"
   };
 
-  const handleEventRemove = (removeInfo) => {};
+  const handleEventRemove = (removeInfo) => {
+    console.log("removed", removeInfo);
+    const eventId = removeInfo.event.id;
+    dispatch(removeEvent(eventId));
+    console.log("eventId", eventId);
+  };
 
   function handleToggleLeftSidebar() {
     setLeftSidebarOpen(!leftSidebarOpen);
@@ -198,7 +204,7 @@ const partner = useSelector(selectUser)
             datesSet={handleDates}
             select={handleDateSelect}
             events={events}
-            eventContent={(eventInfo) => <CalendarAppEventContent eventInfo={eventInfo} backgroundColor='yellow'/>}
+            eventContent={(eventInfo) => <CalendarAppEventContent eventInfo={eventInfo} />}
             eventClick={handleEventClick}
             eventAdd={handleEventAdd}
             eventChange={handleEventChange}
@@ -230,8 +236,7 @@ const partner = useSelector(selectUser)
         // leftSidebarWidth={240} // add Calendar Bar
         scroll="content"
       />
-      <EventDialog />
-      {/* <LabelsDialog /> */}
+      <EventDialog /> 
     </>
   );
 }

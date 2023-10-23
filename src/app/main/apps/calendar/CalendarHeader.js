@@ -19,13 +19,7 @@ function CalendarHeader(props) {
     <div className="flex flex-col md:flex-row w-full p-12 justify-between z-10 container">
       <div className="flex flex-col sm:flex-row items-center">
         <div className="flex items-center">
-          <IconButton
-            onClick={(ev) => onToggleLeftSidebar()}
-            aria-label="open left sidebar"
-            size="small"
-          >
-            <FuseSvgIcon>heroicons-outline:menu</FuseSvgIcon>
-          </IconButton>
+          
 
           <Typography className="text-2xl font-semibold tracking-tight whitespace-nowrap mx-16">
             {currentDate?.view.title}
@@ -64,29 +58,6 @@ function CalendarHeader(props) {
         </div>
       </div>
 
-      <motion.div
-        className="flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, transition: { delay: 0.3 } }}
-      >
-        <IconButton
-          className="mx-8"
-          aria-label="add"
-          onClick={(ev) =>
-            dispatch(
-              openNewEventDialog({
-                jsEvent: ev,
-                start: new Date(),
-                end: new Date(),
-              })
-            )
-          }
-        >
-          <FuseSvgIcon>heroicons-outline:plus-circle</FuseSvgIcon>
-        </IconButton>
-
-        <CalendarViewMenu currentDate={currentDate} calendarApi={calendarApi} />
-      </motion.div>
     </div>
   );
 }

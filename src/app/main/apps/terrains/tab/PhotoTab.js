@@ -54,7 +54,7 @@ function PhotoTab(props) {
   const navigate = useNavigate();
   const images = terrain.photo || [];
   const [urlPhoto, setUrlPhot] = useState([]);
-
+  
   const handelChangePhotos = (newImages) => {
     setUrlPhot((prevPhotos) => [...prevPhotos, ...newImages.map((image) => image.url)]);
   };
@@ -103,7 +103,7 @@ function PhotoTab(props) {
                       };
                       reader.onerror = reject;
                       reader.readAsBinaryString(file);
-                    });
+                    }); 
                   }
 
                   const selectedFiles = e.target.files;

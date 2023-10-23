@@ -18,7 +18,7 @@ import * as yup from "yup";
 import FuseUtils from "@fuse/utils";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { selectUser, updateUserData } from "app/store/userSlice";
+import { selectUser, updatePartnerPhoto, updateUserData } from "app/store/userSlice";
 import { useSelector } from "react-redux";
 import { Autocomplete } from "@mui/material";
 import FuseLoading from "@fuse/core/FuseLoading/FuseLoading";
@@ -104,11 +104,19 @@ function ProfileTab() {
   const handleSiteWeb = (event, newValue) => {
     console.log("new val", newValue);
   };
-  const [urlPhoto, setUrlPhot] = useState([]);
-  const handelChangePhotos = (newImages) => {
-    console.log("dataq", form);
-    form.photoURL = newImages;
+  const [urlPhoto, setUrlPhot] = useState({});
+  const handelChangePhotos = (newImage) => {
+    setUrlPhot(newImage);
+
   };
+  if (urlPhoto) {
+    console.log('urlPhoto', urlPhoto)
+    dispatch(updatePartnerPhoto({ urlPhoto, id: user._id })).then(() => {
+      navigate('/dashboards/profile');
+    });
+  }
+
+
   !user && <FuseLoading />;
   const p = () => {
     console.log("data", form);
@@ -149,42 +157,41 @@ function ProfileTab() {
                         htmlFor="button-avatar"
                         className="flex p-8 cursor-pointer"
                       >
-                        <input
-                          accept="image/*"
-                          className="hidden"
-                          id="button-avatar"
-                          type="file"
-                          onChange={async (e) => {
-                            const selectedFile = e.target.files[0]; // Sélectionnez seulement le premier fichier
-
-                            function readFileAsync(file) {
-                              return new Promise((resolve, reject) => {
-                                const reader = new FileReader();
-                                reader.onload = () => {
-                                  resolve({
-                                    id: FuseUtils.generateGUID(),
-                                    url: `data:${file.type};base64,${btoa(
-                                      reader.result
-                                    )}`,
-                                    type: "image",
-                                  });
-                                };
-                                reader.onerror = reject;
-                                reader.readAsBinaryString(file);
+                      <input
+                      accept="image/*"
+                      className="hidden"
+                      id="button-avatar"
+                      type="file"
+                      onChange={async (e) => {
+                        function readFileAsync(file) {
+                          return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              resolve({
+                                id: FuseUtils.generateGUID(),
+                                url: `data:${file.type};base64,${btoa(reader.result)}`,
+                                type: 'image',
                               });
-                            }
+                            };
+                            reader.onerror = reject;
+                            reader.readAsBinaryString(file);
+                          });
+                        }
+                    
+                        const selectedFile = e.target.files[0]; // Récupère le fichier sélectionné
+                        
+                        const newImage ={}
+                        if (selectedFile) {
+                           newImage = await readFileAsync(selectedFile);
+                      
+                        }
+                  
+                        handelChangePhotos(newImage);
+                      }}
+                    />
+                    
 
-                            if (selectedFile) {
-                              const newImage = await readFileAsync(
-                                selectedFile
-                              );
-                              console.log("dd", newImage);
-                              handelChangePhotos(newImage.url);
-                            }
-                          }}
-                        />
-
-                        <FuseSvgIcon className="text-white">
+                        <FuseSvgIcon className="text-black">
                           heroicons-outline:camera
                         </FuseSvgIcon>
                       </label>

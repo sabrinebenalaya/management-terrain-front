@@ -8,27 +8,27 @@ import axios from 'axios';
 import formatISO from 'date-fns/formatISO';
 import { selectSelectedLabels } from './labelsSlice';
 
-export const dateFormat = 'YYYY-MM-DDTHH:mm:ss.sssZ';
+export const dateFormat = 'YYYY-MM-DDTHH:mm:ss.sssZ'; 
 
 export const getEvents = createAsyncThunk('calendarApp/events/getEvents', async (idPartner) => {
- 
-  const response = await axios.get(`http://localhost:5000/reservations/getPartnerReservation/${idPartner}`);
+  const response = await axios.get(
+    `http://localhost:5000/reservations/getPartnerReservation/${idPartner}`
+  );
   const data = await response.data;
-console.log("data", data)
+  console.log('data', data);
   return data;
 });
 
 export const getAllRrservationInThisDate = createAsyncThunk('calendarApp/events/getAllRrservationInThisDate',
-  async ({ start, end }, { dispatch, getState }) => {
-    console.log("start", start);
-    console.log("end", end);
+  async ({ start, end,z }, { dispatch, getState }) => {
+    console.log("zz", z);
 
     try {
       const response = await axios.get(
         'http://localhost:5000/reservations/getReservationWithDate',
         { params: { start, end } } // Utilisation de params pour envoyer start et end
       );
-
+      console.log("z", z);
       console.log('response', response);
 
       const data = await response.data;
@@ -44,7 +44,7 @@ export const addEvent = createAsyncThunk(
   async (newEvent, { dispatch }) => {
     const response = await axios.post('http://localhost:5000/reservations/add', newEvent);
     const data = await response.data;
-console.log("result data api du back", data)
+    console.log("addEvent",data)
     return data;
   }
 );
@@ -65,8 +65,8 @@ export const removeEvent = createAsyncThunk(
   async (eventId, { dispatch }) => {
     const response = await axios.delete(`http://localhost:5000/reservations/delete/${eventId}`);
     const data = await response.data;
-
-    return data;
+    console.log("removeEvent",data)
+   return data;
   }
 );
 
@@ -167,6 +167,7 @@ const eventsSlice = createSlice({
     [getAllRrservationInThisDate.fulfilled]: (state, action) => {
       state.reservationsWithDate = action.payload; // Stockez les réservations par date
     },
+
   },
 });
 
@@ -185,7 +186,6 @@ export const selectFilteredEvents = createSelector(
 );
 // j'ai enlever .filter((item) => selectedLabels.includes(item.extendedProps.label));
 export const selectReservationsWithDate = (state) => state.calendarApp.events.reservationsWithDate;
-
 
 export const selectEventDialog = ({ calendarApp }) => calendarApp.events.eventDialog;
 

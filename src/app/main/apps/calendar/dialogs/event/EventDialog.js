@@ -63,12 +63,10 @@ function EventDialog(props) {
 
   const ReservationsWithDate = useSelector(selectReservationsWithDate);
 
-  const { control, watch, reset, handleSubmit, formState, getValues } = useForm(
-    {
-      mode: "onChange",
-      resolver: yupResolver(schema),
-    }
-  );
+  const { control, watch, reset, handleSubmit, formState, getValues } = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(schema),
+  });
 
   const { isValid, dirtyFields, errors } = formState;
   const partner = useSelector(selectUser);
@@ -77,12 +75,26 @@ function EventDialog(props) {
   const end = watch("end");
   const id = watch("_id");
   const phone = watch("phone");
+  let reservationTrouvee = {};
+  const timeFormat = "HH:mm";
+
+  const [selectedPhone, setSelectedPhone] = useState("");
+  const [selectedIdReservation, setSelectedIdReservation] = useState("");
+  const [isPhoneFilled, setIsPhoneFilled] = useState(false);
+  const [selectedTerrainId, setSelectedTerrainId] = useState("");
+
+  const [idReservation, setIdReservation] = useState("");
+  const [btneditsave, setBtnEditSave] = useState("Save");
+  // State to manage the visibility of the "Hello World" message
+  const [showHelloWorld, setShowHelloWorld] = useState(false);
 
   useEffect(() => {
     // Appeler l'action pour récupérer la liste des terrains
     dispatch(getTerrains(user._id));
-
-    dispatch(getAllRrservationInThisDate({ start,end}));
+    console.log("je suis dans la use effect");
+    const z= "useeffect"
+    dispatch(getAllRrservationInThisDate({ start, end,z }));
+    console.log('ReservationsWithDate in useEffect', ReservationsWithDate)
   }, [dispatch, start, end, user._id]);
   // Object literal with properties
 
@@ -146,37 +158,32 @@ function EventDialog(props) {
       await dispatch(addEvent(data));
     } else {
       data._id = selectedIdReservation;
-      console.log("DATA OF RESERVATION", data);
       await dispatch(updateEvent({ ...eventDialog.data, ...data }));
     }
 
-    // Mettez à jour la liste des réservations après avoir ajouté ou modifié l'événement
-    dispatch(getAllRrservationInThisDate({ start, end }));
+
+    
     closeComposeDialog();
   }
-
-  const [btneditsave, setBtnEditSave] = useState("Save");
-  // State to manage the visibility of the "Hello World" message
-  const [showHelloWorld, setShowHelloWorld] = useState(false);
-
-  // Function to handle the button click and toggle the visibility of the message
-  const handleButtonClick = () => {
-    setShowHelloWorld(!showHelloWorld);
-  };
 
   /**
    * Remove Event
    */
-  function handleRemove() {
-    dispatch(removeEvent(id));
+
+  async function handleRemove() {
+    console.log('debut handel remove')
+    
+     dispatch(removeEvent(idReservation));
+   
     closeComposeDialog();
   }
-  const timeFormat = "HH:mm";
 
-  const [selectedPhone, setSelectedPhone] = useState("");
-  const [selectedIdReservation, setSelectedIdReservation] = useState("");
+  // Function to handle the button click and toggle the visibility of the message
+  const handleButtonClick = () => {
+    //
+    setShowHelloWorld(!showHelloWorld);
+  };
 
-  const [selectedTerrainId, setSelectedTerrainId] = useState("");
   return (
     <Popover
       {...eventDialog.props}
@@ -195,7 +202,7 @@ function EventDialog(props) {
       <div className="flex flex-col max-w-full p-24 pt-32 sm:pt-40 sm:p-32 w-640">
         <IconButton
           className="absolute top-0 right-0 my-6 mx-4 z-10"
-          sx={{ color: 'black' }}
+          sx={{ color: "black" }}
           size="large"
           onClick={closeComposeDialog}
         >
@@ -217,12 +224,15 @@ function EventDialog(props) {
 
               return (
                 <div
-                  className={classnames('flex sm:space-x-0 mb-16', {
-                    'text-red-500': isReserved, // Appliquez la classe de couleur rouge si le terrain est réservé
+                  className={classnames("flex sm:space-x-0 mb-16", {
+                    "text-red-500": isReserved, // Appliquez la classe de couleur rouge si le terrain est réservé
                   })}
                   key={terrain._id}
                 >
-                  <FuseSvgIcon className="hidden sm:inline-flex mt-16" color="action">
+                  <FuseSvgIcon
+                    className="hidden sm:inline-flex mt-16"
+                    color="action"
+                  >
                     heroicons-outline:radio
                   </FuseSvgIcon>
                   <Controller
@@ -230,26 +240,39 @@ function EventDialog(props) {
                     control={control}
                     render={({ field }) => (
                       <RadioGroup
-  {...field}
-  onChange={(event) => {
-    const idTerrain = event.target.value;
-    const selectedReservation = ReservationsWithDate.find(
-      (reservation) => reservation.terrain === idTerrain
-    );
-    const phoneReservation = selectedReservation
-      ? selectedReservation.phone
-      : "";
-    const idReservation = selectedReservation ? selectedReservation._id : '';
-    setSelectedTerrainId(idTerrain ? idTerrain : '');
-    setSelectedPhone(phoneReservation);
-    setSelectedIdReservation(idReservation);
-    field.onChange(phoneReservation);
-    const terrainReserved = selectedReservation !== undefined;
-    const newBtnEditSave = terrainReserved ? 'Edit' : 'Save';
-    setBtnEditSave(newBtnEditSave);
-  }}
->
+                        {...field}
+                        onChange={(event) => {
+                          const idTerrain = event.target.value;
+                          reservationTrouvee = ReservationsWithDate.find(
+                            (reservation) => reservation.terrain === idTerrain
+                          );
 
+                          const phoneReservation = reservationTrouvee
+                            ? reservationTrouvee.phone
+                            : "";
+
+                          const id_Reservation = reservationTrouvee
+                            ? reservationTrouvee._id
+                            : "";
+
+                          setIdReservation(id_Reservation);
+                          setSelectedPhone(phoneReservation);
+                          const selectedReservation = ReservationsWithDate.find(
+                            (reservation) => reservation.terrain === idTerrain
+                          );
+
+                          setSelectedTerrainId(idTerrain ? idTerrain : "");
+
+                          setSelectedIdReservation(idReservation);
+                          field.onChange(phoneReservation);
+                          const terrainReserved =
+                            selectedReservation !== undefined;
+                          const newBtnEditSave = terrainReserved
+                            ? "Edit"
+                            : "Save";
+                          setBtnEditSave(newBtnEditSave);
+                        }}
+                      >
                         <FormControlLabel
                           key={terrain._id}
                           value={terrain._id}
@@ -346,41 +369,43 @@ function EventDialog(props) {
                     required
                     fullWidth
                     value={field.value || selectedPhone || ""}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      setIsPhoneFilled(!!e.target.value); // Met à jour l'état lorsque le champ change
+                    }}
                   />
                 )}
               />
+
               <IconButton
                 aria-label="Search"
                 onClick={handleButtonClick}
                 style={{ marginTop: "8px" }}
+                disabled={!isPhoneFilled || (!!errors.phone && selectedPhone)} // Désactive l'icône si le champ "phone" n'est pas rempli ou s'il y a des erreurs
               >
                 <SearchIcon />
               </IconButton>
             </div>
+            {showHelloWorld && (
+              <div style={{ textAlign: "center", marginTop: "16px" }}>
+                Ce numéro a confirmé réservations et annulé reservations
+              </div>
+            )}
           </Grid>
         </Grid>
 
         <div className="flex items-center space-x-8">
           <div className="flex flex-1" />
           <Button
-          className="ml-8"
-          variant="contained"
-          startIcon={<DeleteIcon />}
-          onClick={handleRemove}
-          disabled={!selectedTerrainId}
-        >
-          Delete
-        </Button>
-        
-          <Button
             className="ml-8"
             variant="contained"
-            color="error"
-            onClick={onSubmit}
+            onClick={handleRemove}
+            title="Supprimer"
+            disabled={btneditsave === "Save"}
           >
-            Cancel
+            <DeleteIcon /> {/* Ajoutez votre icône ici */}
           </Button>
+
           <Button
             className="ml-8"
             variant="contained"
@@ -389,13 +414,6 @@ function EventDialog(props) {
           >
             {btneditsave}
           </Button>
-        </div>
-
-        <div style={{ textAlign: "center", marginTop: "16px" }}>
-          {/* Display the "Hello World" message based on the state */}
-          <div style={{ minHeight: "150px" }}>
-            {showHelloWorld && <div>Hello World</div>}
-          </div>
         </div>
       </div>
     </Popover>

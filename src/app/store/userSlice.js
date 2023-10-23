@@ -99,6 +99,22 @@ console.log("user", user)
   }
 );
 
+export const updatePartnerPhoto =createAsyncThunk(
+  'user/updatePartnerPhoto',
+  async ({ urlPhoto, id }, { dispatch, getState }) => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+      const response = await axios.put(`http://localhost:5000/partners/updatePhoto/${id}`, {
+        image: urlPhoto,
+      });
+      const { data } = response;
+      return data;
+    } catch (error) {
+      console.log("error", error)
+      throw error;
+    }
+  }
+);
 const initialState = {
   firstName: "John",
   lastName: "Doe",
