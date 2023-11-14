@@ -10,7 +10,6 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { useDispatch, useSelector } from "react-redux";
 import * as yup from "yup";
 import _ from "@lodash";
-import { Link } from "react-router-dom";
 import { Popover } from "@mui/material";
 import FuseSvgIcon from "@fuse/core/FuseSvgIcon";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -19,9 +18,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import Radio from "@mui/material/Radio";
 import Grid from "@mui/material/Grid";
 import { selectUser } from "app/store/userSlice";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import classnames from "classnames";
-
 import {
   addEvent,
   closeEditEventDialog,
@@ -32,18 +29,16 @@ import {
   selectReservationsWithDate,
   updateEvent,
 } from "../../store/eventsSlice";
-
 import EventModel from "../../model/EventModel";
 import { selectFirstLabelId } from "../../store/labelsSlice";
 import {
   getTerrains,
   selectALLTerrains,
 } from "../../../terrains/store/terrainsSlice";
+import { dayCalendarSkeletonClasses } from "@mui/x-date-pickers";
 
 const defaultValues = EventModel();
-/**
- * Form Validation Schema
- */
+
 const schema = yup.object().shape({
   phone: yup
     .string()
@@ -56,51 +51,46 @@ const schema = yup.object().shape({
 
 function EventDialog(props) {
   const dispatch = useDispatch();
+
   const eventDialog = useSelector(selectEventDialog);
   const firstLabelId = useSelector(selectFirstLabelId);
   const user = useSelector(selectUser);
   const ListOfTerrain = useSelector(selectALLTerrains) || [];
-
   const ReservationsWithDate = useSelector(selectReservationsWithDate);
-
-  const { control, watch, reset, handleSubmit, formState, getValues } = useForm({
-    mode: 'onChange',
-    resolver: yupResolver(schema),
-  });
-
-  const { isValid, dirtyFields, errors } = formState;
   const partner = useSelector(selectUser);
-  const form = watch();
-  const start = watch("start");
-  const end = watch("end");
-  const id = watch("_id");
-  const phone = watch("phone");
-  let reservationTrouvee = {};
-  const timeFormat = "HH:mm";
 
-  const [selectedPhone, setSelectedPhone] = useState("");
-  const [selectedIdReservation, setSelectedIdReservation] = useState("");
+ 
   const [isPhoneFilled, setIsPhoneFilled] = useState(false);
   const [selectedTerrainId, setSelectedTerrainId] = useState("");
-
+  const [showHelloWorld, setShowHelloWorld] = useState(false);
   const [idReservation, setIdReservation] = useState("");
   const [btneditsave, setBtnEditSave] = useState("Save");
-  // State to manage the visibility of the "Hello World" message
-  const [showHelloWorld, setShowHelloWorld] = useState(false);
+  const { control, watch, reset, handleSubmit, formState, getValues } = useForm(
+    {
+      defaultValues: {
+        ...defaultValues,
+        terrain: Object.values(ListOfTerrain)[0],
+      },
+      mode: "onChange",
+      resolver: yupResolver(schema),
+    }
+  );
+
+  const { isValid, dirtyFields, errors } = formState;
+
+  const start = watch("start");
+  const end = watch("end");
+  let reservationOfIdTerrain = {};
+  const timeFormat = "HH:mm";
 
   useEffect(() => {
-    // Appeler l'action pour récupérer la liste des terrains
-    dispatch(getTerrains(user._id));
-    console.log("je suis dans la use effect");
-    const z= "useeffect"
-    dispatch(getAllRrservationInThisDate({ start, end,z }));
-    console.log('ReservationsWithDate in useEffect', ReservationsWithDate)
-  }, [dispatch, start, end, user._id]);
-  // Object literal with properties
 
-  /**
-   * Initialize Dialog with Data
-   */
+    dispatch(getTerrains(user._id));
+    dispatch(getAllRrservationInThisDate({ start, end }));
+   
+
+  }, [dispatch, start, end, user._id]);
+
   const initDialog = useCallback(() => {
     /**
      * Dialog type: 'edit'
@@ -123,22 +113,16 @@ function EventDialog(props) {
         id: FuseUtils.generateGUID(),
       });
     }
+    dispatch(getAllRrservationInThisDate({ start, end }));
   }, [eventDialog.data, eventDialog.type, firstLabelId, reset]);
 
-  /**
-   * On Dialog Open
-   */
   useEffect(() => {
     if (eventDialog.props.open) {
       initDialog();
     }
   }, [eventDialog.props.open, initDialog]);
 
-  /**
-   * Close Dialog
-   */
   function closeComposeDialog() {
-    setSelectedPhone("");
     return eventDialog.type === "edit"
       ? dispatch(closeEditEventDialog())
       : dispatch(closeNewEventDialog());
@@ -147,35 +131,33 @@ function EventDialog(props) {
   /**
    * Form Submit
    */
-  async function onSubmit(ev) {
-    ev.preventDefault();
-    const data = getValues();
+  async function eventSubmit(data) {
     data.terrain = selectedTerrainId;
     data.partner = partner._id;
     data.confirmation = true;
 
     if (btneditsave === "Save") {
-      await dispatch(addEvent(data));
+      console.log("data",data)
+      dispatch(addEvent(data));
     } else {
-      data._id = selectedIdReservation;
-      await dispatch(updateEvent({ ...eventDialog.data, ...data }));
+      data._id = data.extendedProps._id;
+
+      dispatch(updateEvent({ ...eventDialog.data, ...data }));
     }
 
-
-    
+    setBtnEditSave("Edit");
     closeComposeDialog();
   }
 
   /**
    * Remove Event
    */
-
   async function handleRemove() {
-    console.log('debut handel remove')
-    
-     dispatch(removeEvent(idReservation));
-   
+    dispatch(removeEvent(idReservation));
+    setBtnEditSave("Save");
+    setSelectedPhone("");
     closeComposeDialog();
+    
   }
 
   // Function to handle the button click and toggle the visibility of the message
@@ -183,6 +165,34 @@ function EventDialog(props) {
     //
     setShowHelloWorld(!showHelloWorld);
   };
+
+  const idTerrain = ListOfTerrain[0]?._id ?? "";
+
+
+  const handleReservationChange = (selectedId) => {
+    console.log("selectedId", selectedId);
+
+    // determiner s'il ya une reservation pour id selected ou non
+    reservationOfIdTerrain = ReservationsWithDate.find(
+      (reservation) => reservation.terrain === selectedId
+    );
+   const ReservationId = reservationOfIdTerrain?._id ?? ""
+ //  console.log("ReservationId", ReservationId, "trouver pour ",selectedId);
+
+    // recuperer le numero de phone s 'il ya de reservation
+    const phoneReservation = reservationOfIdTerrain
+      ? reservationOfIdTerrain.phone
+      : "";
+   console.log("phoneReservation", phoneReservation, "trouver pour la reservation id ",ReservationId, "lie a terrain", selectedId);
+    
+   // mettre à jour le contenue de la bouton
+    const btnName = phoneReservation ? "Edit" : "Save";
+
+    return { phoneReservation, btnName, ReservationId };
+  };
+
+  const [selectedPhone, setSelectedPhone] = useState("");
+ console.log("selectedPhone", selectedPhone) 
 
   return (
     <Popover
@@ -211,81 +221,57 @@ function EventDialog(props) {
 
         <Grid container spacing={1}>
           <Grid item xs={4}>
-            {/* Liste des terrains */}
-            {ListOfTerrain.map((terrain, index) => {
-              // Vérifiez si le terrain est réservé dans ReservationsWithDate
-              const isReserved = ReservationsWithDate.some((reservation) => {
-                return (
-                  reservation.terrain === terrain._id &&
-                  ((reservation.start >= start && reservation.start < end) ||
-                    (reservation.end > start && reservation.end <= end))
-                );
-              });
+            <div className={classnames("flex sm:space-x-0 mb-16")}>
+              <FuseSvgIcon
+                className="hidden sm:inline-flex mt-16"
+                color="action"
+              >
+                heroicons-outline:radio
+              </FuseSvgIcon>
 
-              return (
-                <div
-                  className={classnames("flex sm:space-x-0 mb-16", {
-                    "text-red-500": isReserved, // Appliquez la classe de couleur rouge si le terrain est réservé
-                  })}
-                  key={terrain._id}
-                >
-                  <FuseSvgIcon
-                    className="hidden sm:inline-flex mt-16"
-                    color="action"
-                  >
-                    heroicons-outline:radio
-                  </FuseSvgIcon>
-                  <Controller
-                    name="terrain"
-                    control={control}
-                    render={({ field }) => (
-                      <RadioGroup
-                        {...field}
-                        onChange={(event) => {
-                          const idTerrain = event.target.value;
-                          reservationTrouvee = ReservationsWithDate.find(
-                            (reservation) => reservation.terrain === idTerrain
+              <Controller
+                name="selectedTerrain"
+                control={control}
+                defaultValue={idTerrain}
+                render={({ field: { value, onChange } }) => {
+                  const { phoneReservation, btnName, ReservationId } = handleReservationChange(value);
+                  useEffect(() => {
+       
+                    setSelectedPhone(phoneReservation);
+                    setBtnEditSave(btnName);
+                    setIdReservation(ReservationId);
+                  }, [value]);
+                  return (
+                    <RadioGroup
+                      value={value} // La valeur actuelle est définie ici
+                      onChange={(e) => {   onChange(e);
+                      
+                      }}
+                    >
+                      {ListOfTerrain.map((terrain) => {
+                        const isReserved = ReservationsWithDate.some((reservation) => {
+                          return (
+                            reservation.terrain === terrain._id &&
+                            ((reservation.start >= start && reservation.start < end) ||
+                              (reservation.end > start && reservation.end <= end))
                           );
+                        });
 
-                          const phoneReservation = reservationTrouvee
-                            ? reservationTrouvee.phone
-                            : "";
-
-                          const id_Reservation = reservationTrouvee
-                            ? reservationTrouvee._id
-                            : "";
-
-                          setIdReservation(id_Reservation);
-                          setSelectedPhone(phoneReservation);
-                          const selectedReservation = ReservationsWithDate.find(
-                            (reservation) => reservation.terrain === idTerrain
-                          );
-
-                          setSelectedTerrainId(idTerrain ? idTerrain : "");
-
-                          setSelectedIdReservation(idReservation);
-                          field.onChange(phoneReservation);
-                          const terrainReserved =
-                            selectedReservation !== undefined;
-                          const newBtnEditSave = terrainReserved
-                            ? "Edit"
-                            : "Save";
-                          setBtnEditSave(newBtnEditSave);
-                        }}
-                      >
-                        <FormControlLabel
-                          key={terrain._id}
-                          value={terrain._id}
-                          control={<Radio />}
-                          label={terrain.name}
-                          checked={terrain._id === selectedTerrainId}
-                        />
-                      </RadioGroup>
-                    )}
-                  />
-                </div>
-              );
-            })}
+                        return (
+                          <FormControlLabel
+                            key={terrain._id}
+                            value={terrain._id}
+                            control={<Radio />}
+                            label={terrain.name}
+                            className={isReserved ? 'text-red-500' : ''}
+                          />
+                        );
+                      })}
+                    </RadioGroup>
+                  );
+                }}
+              />
+            </div>
           </Grid>
 
           <Grid item xs={8}>
@@ -368,7 +354,7 @@ function EventDialog(props) {
                     autoFocus
                     required
                     fullWidth
-                    value={field.value || selectedPhone || ""}
+                    value={field.value || selectedPhone ||""}
                     onChange={(e) => {
                       field.onChange(e.target.value);
                       setIsPhoneFilled(!!e.target.value); // Met à jour l'état lorsque le champ change
@@ -410,7 +396,7 @@ function EventDialog(props) {
             className="ml-8"
             variant="contained"
             color="secondary"
-            onClick={onSubmit}
+            onClick={handleSubmit(eventSubmit)}
           >
             {btneditsave}
           </Button>

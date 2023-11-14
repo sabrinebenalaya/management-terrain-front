@@ -15,21 +15,20 @@ export const getEvents = createAsyncThunk('calendarApp/events/getEvents', async 
     `http://localhost:5000/reservations/getPartnerReservation/${idPartner}`
   );
   const data = await response.data;
-  console.log('data', data);
+ 
   return data;
 });
 
 export const getAllRrservationInThisDate = createAsyncThunk('calendarApp/events/getAllRrservationInThisDate',
-  async ({ start, end,z }, { dispatch, getState }) => {
-    console.log("zz", z);
+  async ({ start, end}, { dispatch, getState }) => {
+    
 
     try {
       const response = await axios.get(
         'http://localhost:5000/reservations/getReservationWithDate',
         { params: { start, end } } // Utilisation de params pour envoyer start et end
       );
-      console.log("z", z);
-      console.log('response', response);
+     
 
       const data = await response.data;
       return data;
@@ -44,7 +43,7 @@ export const addEvent = createAsyncThunk(
   async (newEvent, { dispatch }) => {
     const response = await axios.post('http://localhost:5000/reservations/add', newEvent);
     const data = await response.data;
-    console.log("addEvent",data)
+
     return data;
   }
 );
@@ -55,7 +54,6 @@ export const updateEvent = createAsyncThunk(
     console.log("event",event)
     const response = await axios.put(`http://localhost:5000/reservations/update/${event._id}`, event);
     const data = await response.data;
-    console.log("result data api du back update", data)
     return data;
   }
 );
@@ -65,7 +63,7 @@ export const removeEvent = createAsyncThunk(
   async (eventId, { dispatch }) => {
     const response = await axios.delete(`http://localhost:5000/reservations/delete/${eventId}`);
     const data = await response.data;
-    console.log("removeEvent",data)
+
    return data;
   }
 );

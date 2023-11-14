@@ -68,7 +68,7 @@ function FormTab(props) {
   useEffect(() => {
     reset({ ...terrain });
   }, [terrain, reset]);
-  async function o(data) {
+  async function add(data) {
     if (routeParams.id === 'new') {
       try {
         data.partner = partner._id;
@@ -314,12 +314,12 @@ function FormTab(props) {
         {routeParams.id !== 'new' && (
           <Button color="error" onClick={handleRemoveContact}>
             Delete
-          </Button>
+          </Button> 
         )}
         <Button className="ml-auto" component={NavLinkAdapter} to={-1}>
           Cancel
         </Button>
-        <Button className="ml-8" variant="contained" color="secondary" onClick={handleSubmit(o)}>
+        <Button className="ml-8" variant="contained" color="secondary" onClick={handleSubmit(add)}>
           Save
         </Button>
       </Box>
